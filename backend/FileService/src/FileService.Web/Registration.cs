@@ -1,4 +1,5 @@
-﻿using FileService.Core;
+﻿using System.Reflection;
+using FileService.Core;
 using FileService.Infrastructure.Postgres;
 using FileService.Infrastructure.S3;
 using Serilog;
@@ -34,7 +35,7 @@ public static class Registration
             .AddCustomSwagger(configuration)
             .AddInfrastructurePostgres(configuration)
             .AddInfrastructureS3(configuration)
-            .AddEndpoints(typeof(IS3Provider).Assembly);
+            .AddEndpoints(Assembly.Load("FileService.Core"));
 
         return services;
     }

@@ -14,8 +14,6 @@ public static class Registration
     {
         services.Configure<S3Options>(configuration.GetSection(nameof(S3Options)));
 
-        services.AddScoped<IS3Provider, S3Provider>();
-
         services.AddSingleton<IAmazonS3>(sp =>
         {
             S3Options s3Options = sp.GetRequiredService<IOptions<S3Options>>().Value;
