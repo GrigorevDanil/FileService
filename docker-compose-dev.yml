@@ -1,0 +1,55 @@
+services:
+#  file-service:
+#    build:
+#      context: ./backend/FileService
+#      dockerfile: Dockerfile
+#    ports:
+#      - "9001:9001"
+#    environment:
+#      - ASPNETCORE_ENVIRONMENT=Docker
+#      - ASPNETCORE_URLS=http://+:9001
+#    env_file:
+#      - file.service.env
+#    restart: always
+    
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: file_service_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5434:5432"
+    volumes:
+      - "postgres_data:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    
+  seq:
+    container_name: seq
+    image: datalust/seq
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
+    ports:
+      - "5341:5341"
+      - "8081:80"
+        
+  minio:
+    container_name: minio
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: adminadmin
+    command: server --console-address ":9001" /data
+    restart: always
+  
+volumes:
+  postgres_data:  
