@@ -2,4 +2,7 @@
   <PropertyGroup>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="sharedservice.sharedkernel" />
+  </ItemGroup>
 </Project>
