@@ -6,7 +6,7 @@ using SharedService.SharedKernel;
 
 namespace FileService.Domain.VideoAssets;
 
-public class VideoAsset : MediaAsset
+public sealed class VideoAsset : MediaAsset
 {
     public const long MAX_SIZE = 5_368_709_120;
     public const string LOCATION = "videos";
@@ -30,7 +30,14 @@ public class VideoAsset : MediaAsset
         HlsRootKey = hlsRootKey;
     }
 
-    public StorageKey HlsRootKey { get; private set; }
+    /// <summary>
+    /// Для ef core.
+    /// </summary>
+    private VideoAsset()
+    {
+    }
+
+    public StorageKey HlsRootKey { get; private set; } = null!;
 
     public static UnitResult<Error> Validate(MediaData mediaData)
     {

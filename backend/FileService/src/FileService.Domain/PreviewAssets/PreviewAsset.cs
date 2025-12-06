@@ -6,7 +6,7 @@ using SharedService.SharedKernel;
 
 namespace FileService.Domain.PreviewAssets;
 
-public class PreviewAsset: MediaAsset
+public sealed class PreviewAsset: MediaAsset
 {
     public const long MAX_SIZE = 10_485_760;
     public const string LOCATION = "preview";
@@ -23,6 +23,13 @@ public class PreviewAsset: MediaAsset
         StorageKey finalKey,
         MediaOwner owner)
         : base(id, mediaData, AssetType.PREVIEW, status, rawKey, finalKey, owner)
+    {
+    }
+
+    /// <summary>
+    /// Для ef core.
+    /// </summary>
+    private PreviewAsset()
     {
     }
 

@@ -19,13 +19,6 @@ public abstract class MediaAsset : BaseEntity<MediaAssetId>
 
     public MediaOwner Owner { get; protected set; } = null!;
 
-    /// <summary>
-    /// Для ef core.
-    /// </summary>
-    protected MediaAsset()
-    {
-    }
-
     protected MediaAsset(
         MediaAssetId id,
         MediaData mediaData,
@@ -42,6 +35,13 @@ public abstract class MediaAsset : BaseEntity<MediaAssetId>
         RawKey = rawKey;
         FinalKey = finalKey;
         Owner = owner;
+    }
+
+    /// <summary>
+    /// Для ef core.
+    /// </summary>
+    protected MediaAsset()
+    {
     }
 
     /// <summary>
