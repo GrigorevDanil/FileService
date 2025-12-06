@@ -5,7 +5,7 @@ namespace FileService.Domain.MediaAssets.ValueObjects;
 
 public sealed record MediaOwner
 {
-    private const int MAX_CONTEXT_LENGTH = 50;
+    public const int MAX_CONTEXT_LENGTH = 50;
 
     private static readonly HashSet<string> _allowedContexts =
     [

@@ -23,9 +23,9 @@ try
 
     WebApplication app = builder.Build();
 
-    app.Configure();
+    await app.Configure();
 
-    app.Run();
+    await app.RunAsync();
 }
 catch (Exception ex)
 {
@@ -33,5 +33,5 @@ catch (Exception ex)
 }
 finally
 {
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }

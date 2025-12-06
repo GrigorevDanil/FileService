@@ -13,6 +13,10 @@ public sealed record MediaData
         ExpectedChunksCount = expectedChunksCount;
     }
 
+    private MediaData()
+    {
+    }
+
     public FileName FileName { get; private set; } = null!;
 
     public ContentType ContentType { get; private set; } = null!;

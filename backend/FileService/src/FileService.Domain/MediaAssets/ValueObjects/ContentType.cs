@@ -17,7 +17,11 @@ public sealed record ContentType
         Category = type;
     }
 
-    public string Value { get; private set; }
+    private ContentType()
+    {
+    }
+
+    public string Value { get; private set; } = string.Empty;
 
     public MediaType Category { get; private set; }
 

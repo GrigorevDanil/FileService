@@ -16,14 +16,29 @@ public sealed record StorageKey
 
     public static StorageKey None => new (string.Empty, string.Empty, string.Empty);
 
+    /// <summary>
+    /// Идентификатор медиа файла.
+    /// </summary>
     public string Key { get; }
 
+    /// <summary>
+    /// Префикс (нп. raw).
+    /// </summary>
     public string Prefix { get; }
 
+    /// <summary>
+    /// Место хранение (нп. Bucket).
+    /// </summary>
     public string Location { get; }
 
+    /// <summary>
+    /// Префикс + Ключ.
+    /// </summary>
     public string Value { get; }
 
+    /// <summary>
+    /// Полный путь к медиа файлу.
+    /// </summary>
     public string FullPath { get; }
 
     /// <summary>
