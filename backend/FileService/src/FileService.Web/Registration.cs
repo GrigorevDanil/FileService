@@ -15,6 +15,7 @@ public static class Registration
 {
     public static async Task<IApplicationBuilder> Configure(this WebApplication app)
     {
+        app.UseExceptionMiddleware();
         app.UseRequestCorrelationId();
         app.UseSerilogRequestLogging();
 
@@ -41,6 +42,7 @@ public static class Registration
             .AddOpenApi()
             .AddSerilogLogging(configuration, "FileService")
             .AddCustomSwagger(configuration)
+            .AddCore()
             .AddInfrastructurePostgres(configuration)
             .AddInfrastructureS3(configuration)
             .AddEndpoints(Assembly.Load("FileService.Core"));

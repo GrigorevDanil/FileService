@@ -28,6 +28,8 @@ public static class Registration
             return new AmazonS3Client(s3Options.AccessKey, s3Options.SecretKey, config);
         });
 
+        services.AddScoped<IS3Provider, S3Provider>();
+
         services.AddHostedService<S3BucketInitializationBackgroundService>();
 
         return services;

@@ -14,7 +14,9 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="SharedService.Core" />
     <PackageReference Include="sharedservice.framework" />
   </ItemGroup>
 </Project>

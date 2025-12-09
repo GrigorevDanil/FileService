@@ -1,4 +1,6 @@
-﻿using FileService.Domain.MediaAssets;
+﻿using System.Text.Json;
+using FileService.Domain.MediaAssets;
+using FileService.Domain.MediaAssets.ValueObjects;
 using FileService.Domain.VideoAssets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,18 +13,11 @@ public class VideoAssetConfiguration : IEntityTypeConfiguration<VideoAsset>
     {
         builder.HasBaseType<MediaAsset>();
 
-        builder.OwnsOne(e => e.HlsRootKey, hrkb =>
-        {
-            hrkb.ToJson("hls_root_key");
-
-            hrkb.Property(rke => rke.Location)
-                .HasJsonPropertyName("location");
-
-            hrkb.Property(rke => rke.Prefix)
-                .HasJsonPropertyName("prefix");
-
-            hrkb.Property(rke => rke.Key)
-                .HasJsonPropertyName("key");
-        });
+        builder.Property(e => e.HlsRootKey)
+            .HasColumnName("hls_root_key")
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
+                v => JsonSerializer.Deserialize<StorageKey>(v, JsonSerializerOptions.Default)!)
+            .HasColumnType("jsonb");
     }
 }

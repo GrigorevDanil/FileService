@@ -5,4 +5,7 @@
   <ItemGroup>
     <PackageReference Include="sharedservice.sharedkernel" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FileService.Contracts\FileService.Contracts.csproj" />
+  </ItemGroup>
 </Project>

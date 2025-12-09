@@ -1,10 +1,12 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Text.Json.Serialization;
+using CSharpFunctionalExtensions;
 using SharedService.SharedKernel;
 
 namespace FileService.Domain.MediaAssets.ValueObjects;
 
 public sealed record StorageKey
 {
+    [JsonConstructor]
     private StorageKey(string location, string prefix, string key)
     {
         Key = key;

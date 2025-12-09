@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.14" />
     <PackageVersion Include="AWSSDK.S3" Version="4.0.13.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
@@ -18,8 +19,9 @@
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.Debug" Version="3.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
-    <PackageVersion Include="sharedservice.framework" Version="0.0.1" />
-    <PackageVersion Include="sharedservice.sharedkernel" Version="0.0.1" />
+    <PackageVersion Include="SharedService.Core" Version="0.0.1" />
+    <PackageVersion Include="sharedservice.framework" Version="0.0.2" />
+    <PackageVersion Include="sharedservice.sharedkernel" Version="0.0.2" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="10.0.1" />
