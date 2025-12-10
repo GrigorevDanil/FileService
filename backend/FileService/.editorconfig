@@ -22,11 +22,15 @@ dotnet_diagnostic.CA1822.severity = none
 dotnet_diagnostic.CA1308.severity = none
 dotnet_diagnostic.CA1861.severity = none
 dotnet_diagnostic.CA1040.severity = none
+dotnet_diagnostic.CA1816.severity = none
+dotnet_diagnostic.CA1063.severity = none
+dotnet_diagnostic.CA1819.severity = none
 
 # StyleCop - отключение правил форматирования
 dotnet_diagnostic.SA1516.severity = none
 dotnet_diagnostic.SA1413.severity = none
 dotnet_diagnostic.SA1642.severity = none
+dotnet_diagnostic.SA1129.severity = none
 
 # Microsoft .NET properties
 csharp_new_line_before_members_in_object_initializers = false

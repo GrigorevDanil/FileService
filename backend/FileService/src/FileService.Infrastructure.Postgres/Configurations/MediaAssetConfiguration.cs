@@ -1,4 +1,5 @@
-﻿using FileService.Domain.MediaAssets;
+﻿using System.Text.Json;
+using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FileService.Domain.PreviewAssets;
@@ -67,27 +68,19 @@ public class MediaAssetConfiguration : IEntityTypeConfiguration<MediaAsset>
             .HasMaxLength(9)
             .IsRequired();
 
-        builder.OwnsOne(e => e.RawKey, rkb =>
-        {
-            rkb.ToJson("raw_key");
+        builder.Property(e => e.RawKey)
+            .HasColumnName("raw_key")
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
+                v => JsonSerializer.Deserialize<StorageKey>(v, JsonSerializerOptions.Default)!)
+            .HasColumnType("jsonb");
 
-            rkb.Property(rke => rke.Location).HasJsonPropertyName("location");
-
-            rkb.Property(rke => rke.Prefix).HasJsonPropertyName("prefix");
-
-            rkb.Property(rke => rke.Key).HasJsonPropertyName("key");
-        });
-
-        builder.OwnsOne(e => e.FinalKey, fkb =>
-        {
-            fkb.ToJson("final_key");
-
-            fkb.Property(fke => fke.Location).HasJsonPropertyName("location");
-
-            fkb.Property(fke => fke.Prefix).HasJsonPropertyName("prefix");
-
-            fkb.Property(fke => fke.Key).HasJsonPropertyName("key");
-        });
+        builder.Property(e => e.FinalKey)
+            .HasColumnName("final_key")
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
+                v => JsonSerializer.Deserialize<StorageKey>(v, JsonSerializerOptions.Default)!)
+            .HasColumnType("jsonb");
 
         builder.ComplexProperty(e => e.Owner, ob =>
         {

@@ -42,7 +42,7 @@ public sealed class PreviewAsset: MediaAsset
                 "previewAsset.mediaData.fileName.extension");
         }
 
-        if (mediaData.ContentType.Category != MediaType.VIDEO)
+        if (mediaData.ContentType.Category != MediaType.IMAGE)
         {
             return GeneralErrors.ValueIsInvalid(
                 $"File content type must be {ALLOWED_CONTENT_TYPE}",

@@ -22,7 +22,7 @@ public sealed record FileSize
     public static Result<FileSize, Error> Of(long value)
     {
         if (value <= 0)
-            return GeneralErrors.ValueIsInvalid(INVALID_FIELD);
+            return GeneralErrors.ValueIsInvalid("File size must be greater than zero", INVALID_FIELD);
 
         return new FileSize(value);
     }

@@ -1,6 +1,8 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
+using FileService.Domain.PreviewAssets;
+using FileService.Domain.VideoAssets;
 using SharedService.SharedKernel;
 
 namespace FileService.Domain.MediaAssets;
@@ -42,6 +44,20 @@ public abstract class MediaAsset : BaseEntity<MediaAssetId>
     /// </summary>
     protected MediaAsset()
     {
+    }
+
+    public static Result<MediaAsset, Error> CreateForUpload(MediaAssetId id, MediaData mediaData, AssetType assetType, MediaOwner owner)
+    {
+        switch (assetType)
+        {
+            case AssetType.VIDEO:
+                    Result<VideoAsset, Error> videoAssetResult = VideoAsset.CreateForUpload(id,  mediaData, owner);
+                    return videoAssetResult.IsFailure ? videoAssetResult.Error : videoAssetResult.Value;
+            case AssetType.PREVIEW:
+                    Result<PreviewAsset, Error> previewAssetResult = PreviewAsset.CreateForUpload(id,  mediaData, owner);
+                    return previewAssetResult.IsFailure ? previewAssetResult.Error : previewAssetResult.Value;
+            default: throw new ArgumentOutOfRangeException(nameof(assetType), assetType, null);
+        }
     }
 
     /// <summary>
