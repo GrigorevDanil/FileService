@@ -1,5 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using FileService.Contracts.MediaAssets;
+using FileService.Contracts.MediaAssets.Requests;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
@@ -14,9 +14,9 @@ using SharedService.Core.Validation;
 using SharedService.Framework.Endpoints;
 using SharedService.SharedKernel;
 
-namespace FileService.Core.Features.MediaAssets;
+namespace FileService.Core.Features.MediaAssets.Queries;
 
-public class GetUploadUrlEndpoint : IEndpoint
+public sealed class GetUploadUrlEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
@@ -24,11 +24,11 @@ public class GetUploadUrlEndpoint : IEndpoint
                 [FromBody] GetUploadUrlRequest request,
                 [FromServices] GetUploadUrlHandler handler,
                 CancellationToken cancellationToken) =>
-            await handler.Handle(new GetUploadUrlCommand(request), cancellationToken)).DisableAntiforgery();
+            await handler.Handle(new GetUploadUrlCommand(request), cancellationToken));
     }
 }
 
-public class GetUploadUrlValidator : AbstractValidator<GetUploadUrlCommand>
+public sealed class GetUploadUrlValidator : AbstractValidator<GetUploadUrlCommand>
 {
     public GetUploadUrlValidator()
     {
@@ -36,7 +36,7 @@ public class GetUploadUrlValidator : AbstractValidator<GetUploadUrlCommand>
             .Must(at => Enum.IsDefined(typeof(AssetType), at.ToUpperInvariant()))
             .WithError(GeneralErrors.ValueIsInvalid("Asset type not valid", "assetType"));
 
-        RuleFor(x => x.Request.Context).MustBeValueObject(c => MediaOwner.Of(c, Guid.NewGuid()));
+        RuleFor(x => x.Request).MustBeValueObject(r => MediaOwner.Of(r.Context, r.EntityId));
 
         RuleFor(x => x.Request.FileName).MustBeValueObject(FileName.Of);
         RuleFor(x => x.Request.ContentType).MustBeValueObject(ContentType.Of);
@@ -44,9 +44,9 @@ public class GetUploadUrlValidator : AbstractValidator<GetUploadUrlCommand>
     }
 }
 
-public record GetUploadUrlCommand(GetUploadUrlRequest Request) : ICommand;
+public sealed record GetUploadUrlCommand(GetUploadUrlRequest Request) : ICommand;
 
-public class GetUploadUrlHandler : ICommandHandler<GetUploadUrlCommand, string>
+public sealed class GetUploadUrlHandler : ICommandHandler<GetUploadUrlCommand, string>
 {
     private readonly IS3Provider _s3Provider;
     private readonly IValidator<GetUploadUrlCommand> _validator;
@@ -77,7 +77,7 @@ public class GetUploadUrlHandler : ICommandHandler<GetUploadUrlCommand, string>
             FileSize.Of(command.Request.FileSize).Value,
             ExpectedChunksCount.Of(1).Value);
 
-        MediaOwner mediaOwner = MediaOwner.Of(command.Request.Context, mediaAssetId.Value).Value;
+        MediaOwner mediaOwner = MediaOwner.Of(command.Request.Context, command.Request.EntityId).Value;
 
         Result<MediaAsset, Error> mediaAssetResult = MediaAsset.CreateForUpload(mediaAssetId, mediaData, command.Request.AssetType.ToAssetType(), mediaOwner);
 

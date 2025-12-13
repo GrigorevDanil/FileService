@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Core.MediaAssets;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FluentValidation;
 using FluentValidation.Results;
@@ -11,7 +12,7 @@ using SharedService.Core.Validation;
 using SharedService.Framework.Endpoints;
 using SharedService.SharedKernel;
 
-namespace FileService.Core.Features.MediaAssets;
+namespace FileService.Core.Features.MediaAssets.Queries;
 
 public class GetDownloadUrlsEndpoint : IEndpoint
 {
@@ -21,7 +22,7 @@ public class GetDownloadUrlsEndpoint : IEndpoint
                 [FromQuery] string[] paths,
                 [FromServices] GetDownloadUrlsHandler handler,
                 CancellationToken cancellationToken) =>
-            await handler.Handle(new GetDownloadUrlsCommand(paths), cancellationToken)).DisableAntiforgery();
+            await handler.Handle(new GetDownloadUrlsCommand(paths), cancellationToken));
     }
 }
 
@@ -44,7 +45,7 @@ public class GetDownloadUrlsValidator : AbstractValidator<GetDownloadUrlsCommand
 
 public record GetDownloadUrlsCommand(string[] Paths) : ICommand;
 
-public class GetDownloadUrlsHandler : ICommandHandler<GetDownloadUrlsCommand, IEnumerable<string>>
+public sealed class GetDownloadUrlsHandler : ICommandHandler<GetDownloadUrlsCommand, IEnumerable<string>>
 {
     private readonly IS3Provider _s3Provider;
     private readonly IValidator<GetDownloadUrlsCommand> _validator;

@@ -29,7 +29,7 @@ public static class Registration
             await scope.UseAutoMigrateAsync();
         }
 
-        RouteGroupBuilder apiGroup = app.MapGroup("/api");
+        RouteGroupBuilder apiGroup = app.MapGroup("/api").DisableAntiforgery();
 
         app.MapEndpoints(apiGroup);
 

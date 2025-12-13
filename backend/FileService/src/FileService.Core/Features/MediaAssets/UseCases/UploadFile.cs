@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
-using FileService.Contracts.MediaAssets;
+using FileService.Contracts.MediaAssets.Requests;
+using FileService.Core.MediaAssets;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
@@ -15,9 +16,9 @@ using SharedService.Core.Validation;
 using SharedService.Framework.Endpoints;
 using SharedService.SharedKernel;
 
-namespace FileService.Core.Features.MediaAssets;
+namespace FileService.Core.Features.MediaAssets.UseCases;
 
-public class UploadFileEndpoint : IEndpoint
+public sealed class UploadFileEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
@@ -25,11 +26,11 @@ public class UploadFileEndpoint : IEndpoint
             [FromForm] UploadFileRequest request,
             [FromServices] UploadFileHandler handler,
             CancellationToken cancellationToken) =>
-            await handler.Handle(new UploadFileCommand(request), cancellationToken)).DisableAntiforgery();
+            await handler.Handle(new UploadFileCommand(request), cancellationToken));
     }
 }
 
-public class UploadFileValidator : AbstractValidator<UploadFileCommand>
+public sealed class UploadFileValidator : AbstractValidator<UploadFileCommand>
 {
     public UploadFileValidator()
     {
@@ -37,7 +38,7 @@ public class UploadFileValidator : AbstractValidator<UploadFileCommand>
             .Must(at => Enum.IsDefined(typeof(AssetType), at.ToUpperInvariant()))
             .WithError(GeneralErrors.ValueIsInvalid("Asset type not valid", "assetType"));
 
-        RuleFor(x => x.Request.Context).MustBeValueObject(c => MediaOwner.Of(c, Guid.NewGuid()));
+        RuleFor(x => x.Request).MustBeValueObject(r => MediaOwner.Of(r.Context, r.EntityId));
 
         RuleFor(x => x.Request.File.FileName).MustBeValueObject(FileName.Of);
         RuleFor(x => x.Request.File.ContentType).MustBeValueObject(ContentType.Of);
@@ -45,9 +46,9 @@ public class UploadFileValidator : AbstractValidator<UploadFileCommand>
     }
 }
 
-public record UploadFileCommand(UploadFileRequest Request) : ICommand;
+public sealed record UploadFileCommand(UploadFileRequest Request) : ICommand;
 
-public class UploadFileHandler : ICommandHandler<UploadFileCommand, Guid>
+public sealed class UploadFileHandler : ICommandHandler<UploadFileCommand, Guid>
 {
     private readonly IMediaRepository _mediaRepository;
     private readonly ITransactionManager _transactionManager;
@@ -84,7 +85,7 @@ public class UploadFileHandler : ICommandHandler<UploadFileCommand, Guid>
             FileSize.Of(command.Request.File.Length).Value,
             ExpectedChunksCount.Of(1).Value);
 
-        MediaOwner mediaOwner = MediaOwner.Of(command.Request.Context, mediaAssetId.Value).Value;
+        MediaOwner mediaOwner = MediaOwner.Of(command.Request.Context, command.Request.EntityId).Value;
 
         Result<MediaAsset, Error> mediaAssetResult = MediaAsset.CreateForUpload(mediaAssetId, mediaData, command.Request.AssetType.ToAssetType(), mediaOwner);
 

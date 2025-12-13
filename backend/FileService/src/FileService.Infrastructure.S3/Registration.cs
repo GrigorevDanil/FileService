@@ -1,7 +1,6 @@
-﻿using Amazon.Extensions.NETCore.Setup;
-using Amazon.Runtime;
-using Amazon.S3;
+﻿using Amazon.S3;
 using FileService.Core;
+using FileService.Core.MediaAssets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -31,6 +30,8 @@ public static class Registration
         services.AddScoped<IS3Provider, S3Provider>();
 
         services.AddHostedService<S3BucketInitializationBackgroundService>();
+
+        services.AddTransient<IChunkSizeCalculator, ChunkSizeCalculator>();
 
         return services;
     }

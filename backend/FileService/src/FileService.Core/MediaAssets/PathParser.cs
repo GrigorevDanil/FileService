@@ -1,4 +1,4 @@
-﻿namespace FileService.Core.Features.MediaAssets;
+﻿namespace FileService.Core.MediaAssets;
 
 public static class PathParser
 {
