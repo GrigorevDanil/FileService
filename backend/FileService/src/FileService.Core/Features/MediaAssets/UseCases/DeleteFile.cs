@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Core.MediaAssets;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FluentValidation;
@@ -13,9 +14,9 @@ using SharedService.Core.Validation;
 using SharedService.Framework.Endpoints;
 using SharedService.SharedKernel;
 
-namespace FileService.Core.Features.MediaAssets;
+namespace FileService.Core.Features.MediaAssets.UseCases;
 
-public class DeleteFileEndpoint : IEndpoint
+public sealed class DeleteFileEndpoint : IEndpoint
 {
      public void MapEndpoint(IEndpointRouteBuilder builder)
     {
@@ -23,11 +24,11 @@ public class DeleteFileEndpoint : IEndpoint
             [FromRoute] string path,
             [FromServices] DeleteFileHandler handler,
             CancellationToken cancellationToken) =>
-            await handler.Handle(new DeleteFileCommand(path), cancellationToken)).DisableAntiforgery();
+            await handler.Handle(new DeleteFileCommand(path), cancellationToken));
     }
 }
 
-public class DeleteFileValidator : AbstractValidator<DeleteFileCommand>
+public sealed class DeleteFileValidator : AbstractValidator<DeleteFileCommand>
 {
     public DeleteFileValidator()
     {
@@ -44,9 +45,9 @@ public class DeleteFileValidator : AbstractValidator<DeleteFileCommand>
     }
 }
 
-public record DeleteFileCommand(string Path) : ICommand;
+public sealed record DeleteFileCommand(string Path) : ICommand;
 
-public class DeleteFileHandler : ICommandHandler<DeleteFileCommand, Guid>
+public sealed class DeleteFileHandler : ICommandHandler<DeleteFileCommand, Guid>
 {
     private readonly IMediaRepository _mediaRepository;
     private readonly ITransactionManager _transactionManager;

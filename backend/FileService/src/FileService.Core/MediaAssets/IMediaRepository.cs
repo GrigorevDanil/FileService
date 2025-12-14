@@ -4,7 +4,7 @@ using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.ValueObjects;
 using SharedService.SharedKernel;
 
-namespace FileService.Core.Features.MediaAssets;
+namespace FileService.Core.MediaAssets;
 
 public interface IMediaRepository
 {

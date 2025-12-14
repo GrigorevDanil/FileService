@@ -1,4 +1,5 @@
 ﻿using FileService.Core.Features.MediaAssets;
+using FileService.Core.MediaAssets;
 using FileService.Infrastructure.Postgres.Database;
 using FileService.Infrastructure.Postgres.Repositories;
 using Microsoft.EntityFrameworkCore;

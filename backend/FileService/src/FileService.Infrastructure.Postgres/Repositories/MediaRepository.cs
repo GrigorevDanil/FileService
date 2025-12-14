@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
 using FileService.Core.Features.MediaAssets;
+using FileService.Core.MediaAssets;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.ValueObjects;
 using Microsoft.EntityFrameworkCore;
