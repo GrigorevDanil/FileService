@@ -1,4 +1,5 @@
-﻿using FileService.Contracts.MediaAssets.Dtos;
+﻿using CSharpFunctionalExtensions;
+using FileService.Contracts.MediaAssets.Dtos;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
 using Microsoft.AspNetCore.Builder;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using SharedService.Core.Handlers;
 using SharedService.Framework.Endpoints;
+using SharedService.SharedKernel;
 
 namespace FileService.Core.Features.MediaAssets.Queries;
 
@@ -24,7 +26,7 @@ public sealed class GetMediaAssetInfoEndpoint : IEndpoint
 
 public sealed record GetMediaAssetInfoQuery(Guid MediaAssetId) : IQuery;
 
-public sealed class GetMediaAssetInfoHandler : IQueryHandler<GetMediaAssetInfoQuery, MediaAssetDto?>
+public sealed class GetMediaAssetInfoHandler : IQueryHandlerWithResult<GetMediaAssetInfoQuery, MediaAssetDto?>
 {
     private readonly IS3Provider _s3Provider;
     private readonly IReadDbContext _readDbContext;
@@ -35,7 +37,7 @@ public sealed class GetMediaAssetInfoHandler : IQueryHandler<GetMediaAssetInfoQu
         _readDbContext = readDbContext;
     }
 
-    public async Task<MediaAssetDto?> Handle(
+    public async Task<Result<MediaAssetDto?, Errors>> Handle(
         GetMediaAssetInfoQuery query,
         CancellationToken cancellationToken = new CancellationToken())
     {
@@ -62,10 +64,17 @@ public sealed class GetMediaAssetInfoHandler : IQueryHandler<GetMediaAssetInfoQu
             .FirstOrDefaultAsync(cancellationToken);
 
         if (tempMediaAsset is null)
-            return null;
+            return GeneralErrors.NotFound(query.MediaAssetId).ToErrors();
 
         if (tempMediaAsset.MediaAssetDto.Status == nameof(MediaStatus.READY))
-            tempMediaAsset.MediaAssetDto.DownloadUrl = (await _s3Provider.GenerateDownloadUrlAsync(tempMediaAsset.RawKey)).Value;
+        {
+            Result<string, Error> generateUrlResult = await _s3Provider.GenerateDownloadUrlAsync(tempMediaAsset.RawKey);
+
+            if (generateUrlResult.IsFailure)
+                return generateUrlResult.Error.ToErrors();
+
+            tempMediaAsset.MediaAssetDto.DownloadUrl = generateUrlResult.Value;
+        }
 
         return tempMediaAsset.MediaAssetDto;
     }

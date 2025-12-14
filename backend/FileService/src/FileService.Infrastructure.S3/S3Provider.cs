@@ -3,7 +3,9 @@ using Amazon.S3.Model;
 using CSharpFunctionalExtensions;
 using FileService.Contracts.MediaAssets.Dtos;
 using FileService.Core;
+using FileService.Core.Models;
 using FileService.Domain.MediaAssets.ValueObjects;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SharedService.SharedKernel;
@@ -281,17 +283,31 @@ public class S3Provider : IS3Provider, IDisposable
         }
     }
 
-    public async Task<Result<IReadOnlyList<string>, Errors>> GenerateDownloadUrlsAsync(
+    public async Task<Result<IReadOnlyList<MediaUrl>, Errors>> GenerateDownloadUrlsAsync(
         IEnumerable<StorageKey> keys,
         CancellationToken cancellationToken = default)
     {
-        IEnumerable<Task<Result<string, Error>>> tasks = keys.Select(async key =>
+        IEnumerable<Task<Result<MediaUrl, Error>>> tasks = keys.Select(async key =>
         {
             await _requestsSemaphore.WaitAsync(cancellationToken);
 
+            GetPreSignedUrlRequest request = new()
+            {
+                BucketName = key.Location,
+                Key = key.Value,
+                Verb = HttpVerb.GET,
+                Expires = DateTime.UtcNow.AddHours(_s3Options.DownloadUrlExpirationHours),
+                Protocol = _s3Options.WithSsl ? Protocol.HTTPS : Protocol.HTTP
+            };
+
             try
             {
-                return await GenerateDownloadUrlAsync(key);
+                return Result.Success<MediaUrl, Error>(new MediaUrl(key, await _s3Client.GetPreSignedURLAsync(request)));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading file");
+                return S3ErrorMapper.ToError(ex);
             }
             finally
             {
@@ -299,7 +315,7 @@ public class S3Provider : IS3Provider, IDisposable
             }
         });
 
-        Result<string, Error>[] downloadUrlsResult = await Task.WhenAll(tasks);
+        Result<MediaUrl, Error>[] downloadUrlsResult = await Task.WhenAll(tasks);
 
         Error[] errors = downloadUrlsResult
             .Where(res => res.IsFailure)

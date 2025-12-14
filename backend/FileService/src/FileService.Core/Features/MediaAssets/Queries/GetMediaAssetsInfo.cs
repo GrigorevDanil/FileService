@@ -1,4 +1,6 @@
-﻿using FileService.Contracts.MediaAssets.Dtos;
+﻿using CSharpFunctionalExtensions;
+using FileService.Contracts.MediaAssets.Dtos;
+using FileService.Core.Models;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
 using Microsoft.AspNetCore.Builder;
@@ -7,6 +9,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using SharedService.Core.Handlers;
 using SharedService.Framework.Endpoints;
+using SharedService.SharedKernel;
 
 namespace FileService.Core.Features.MediaAssets.Queries;
 
@@ -18,13 +21,13 @@ public sealed class GetMediaAssetsInfoEndpoint : IEndpoint
                 [FromQuery] Guid[] mediaAssetIds,
                 [FromServices] GetMediaAssetsInfoHandler handler,
                 CancellationToken cancellationToken) =>
-            (await handler.Handle(new GetMediaAssetsInfoQuery(mediaAssetIds), cancellationToken)).ToArray());
+            await handler.Handle(new GetMediaAssetsInfoQuery(mediaAssetIds), cancellationToken));
     }
 }
 
 public sealed record GetMediaAssetsInfoQuery(Guid[] MediaAssetIds) : IQuery;
 
-public sealed class GetMediaAssetsInfoHandler : IQueryHandler<GetMediaAssetsInfoQuery, IEnumerable<MediaAssetDto>>
+public sealed class GetMediaAssetsInfoHandler : IQueryHandlerWithResult<GetMediaAssetsInfoQuery, IEnumerable<MediaAssetDto>>
 {
     private readonly IS3Provider _s3Provider;
     private readonly IReadDbContext _readDbContext;
@@ -35,7 +38,7 @@ public sealed class GetMediaAssetsInfoHandler : IQueryHandler<GetMediaAssetsInfo
         _readDbContext = readDbContext;
     }
 
-    public async Task<IEnumerable<MediaAssetDto>> Handle(
+    public async Task<Result<IEnumerable<MediaAssetDto>, Errors>> Handle(
         GetMediaAssetsInfoQuery query,
         CancellationToken cancellationToken = new CancellationToken())
     {
@@ -61,16 +64,26 @@ public sealed class GetMediaAssetsInfoHandler : IQueryHandler<GetMediaAssetsInfo
             })
             .ToListAsync(cancellationToken);
 
-        IEnumerable<StorageKey> keys = tempMediaAssets.Select(x => x.RawKey);
+        var readyTempMediaAssets = tempMediaAssets
+            .Where(x => x.MediaAssetDto.Status == nameof(MediaStatus.READY)).ToList();
 
-        IReadOnlyList<string> downloadUrls = (await _s3Provider.GenerateDownloadUrlsAsync(keys, cancellationToken)).Value;
+        IEnumerable<StorageKey> keys = readyTempMediaAssets.Select(x => x.RawKey);
 
-        for (int i = 0; i < tempMediaAssets.Count; i++)
+        Result<IReadOnlyList<MediaUrl>, Errors> generateUrlsResult = await _s3Provider.GenerateDownloadUrlsAsync(keys, cancellationToken);
+
+        if (generateUrlsResult.IsFailure)
+            return generateUrlsResult.Error;
+
+        Dictionary<StorageKey, string> urlsDict = generateUrlsResult.Value.ToDictionary(x => x.Key, x => x.PresignedUrl);
+
+        foreach (var tempMediaAsset in tempMediaAssets)
         {
-            if (tempMediaAssets[i].MediaAssetDto.Status == nameof(MediaStatus.READY))
-                tempMediaAssets[i].MediaAssetDto.DownloadUrl = downloadUrls[i];
+            urlsDict.TryGetValue(tempMediaAsset.RawKey, out string? downloadUrl);
+
+            if (downloadUrl is not null)
+                tempMediaAsset.MediaAssetDto.DownloadUrl = downloadUrl;
         }
 
-        return tempMediaAssets.Select(x => x.MediaAssetDto);
+        return Result.Success<IEnumerable<MediaAssetDto>, Errors>(tempMediaAssets.Select(x => x.MediaAssetDto));
     }
 }

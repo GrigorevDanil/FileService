@@ -26,11 +26,11 @@ public sealed class GetChuckUploadUrlEndpoint : IEndpoint
                 [AsParameters] GetChuckUploadUrlRequest request,
                 [FromServices] GetChuckUploadUrlHandler handler,
                 CancellationToken cancellationToken) =>
-            await handler.Handle(new GetChuckUploadUrlCommand(request), cancellationToken));
+            await handler.Handle(new GetChuckUploadUrlQuery(request), cancellationToken));
     }
 }
 
-public sealed class GetChuckUploadUrlValidator : AbstractValidator<GetChuckUploadUrlCommand>
+public sealed class GetChuckUploadUrlValidator : AbstractValidator<GetChuckUploadUrlQuery>
 {
     public GetChuckUploadUrlValidator()
     {
@@ -40,19 +40,19 @@ public sealed class GetChuckUploadUrlValidator : AbstractValidator<GetChuckUploa
     }
 }
 
-public sealed record GetChuckUploadUrlCommand(GetChuckUploadUrlRequest Request) : ICommand;
+public sealed record GetChuckUploadUrlQuery(GetChuckUploadUrlRequest Request) : IQuery;
 
-public sealed class GetChuckUploadUrlHandler : ICommandHandler<GetChuckUploadUrlCommand, string>
+public sealed class GetChuckUploadUrlHandler : IQueryHandlerWithResult<GetChuckUploadUrlQuery, string>
 {
     private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
-    private readonly IValidator<GetChuckUploadUrlCommand> _validator;
+    private readonly IValidator<GetChuckUploadUrlQuery> _validator;
     private readonly ILogger<GetDownloadUrlHandler> _logger;
 
     public GetChuckUploadUrlHandler(
         IS3Provider s3Provider,
         IMediaRepository mediaRepository,
-        IValidator<GetChuckUploadUrlCommand> validator,
+        IValidator<GetChuckUploadUrlQuery> validator,
         ILogger<GetDownloadUrlHandler> logger)
     {
         _s3Provider = s3Provider;
@@ -61,14 +61,14 @@ public sealed class GetChuckUploadUrlHandler : ICommandHandler<GetChuckUploadUrl
         _logger = logger;
     }
 
-    public async Task<Result<string, Errors>> Handle(GetChuckUploadUrlCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<string, Errors>> Handle(GetChuckUploadUrlQuery query, CancellationToken cancellationToken = default)
     {
-        ValidationResult validationResult = await _validator.ValidateAsync(command, cancellationToken);
+        ValidationResult validationResult = await _validator.ValidateAsync(query, cancellationToken);
 
         if (!validationResult.IsValid)
             return validationResult.ToErrors();
 
-        var mediaAssetId = MediaAssetId.Of(command.Request.MediaAssetId);
+        var mediaAssetId = MediaAssetId.Of(query.Request.MediaAssetId);
 
         Result<MediaAsset, Error> getMediaAssetResult = await _mediaRepository.GetBy(x => x.Id == mediaAssetId, cancellationToken);
 
@@ -77,7 +77,7 @@ public sealed class GetChuckUploadUrlHandler : ICommandHandler<GetChuckUploadUrl
 
         MediaAsset mediaAsset = getMediaAssetResult.Value;
 
-        Result<ChunkUploadUrl, Error> generateChunkUploadUrlResult = await _s3Provider.GenerateChunkUploadUrl(mediaAsset.RawKey, command.Request.UploadId, command.Request.PartNumber);
+        Result<ChunkUploadUrl, Error> generateChunkUploadUrlResult = await _s3Provider.GenerateChunkUploadUrl(mediaAsset.RawKey, query.Request.UploadId, query.Request.PartNumber);
 
         if (generateChunkUploadUrlResult.IsFailure)
             return generateChunkUploadUrlResult.Error.ToErrors();
