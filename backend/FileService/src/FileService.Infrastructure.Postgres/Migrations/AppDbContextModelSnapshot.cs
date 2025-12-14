@@ -39,6 +39,16 @@ namespace FileService.Infrastructure.Postgres.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("FinalKey")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("final_key");
+
+                    b.Property<string>("RawKey")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("raw_key");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(9)
@@ -88,63 +98,16 @@ namespace FileService.Infrastructure.Postgres.Migrations
                 {
                     b.HasBaseType("FileService.Domain.MediaAssets.MediaAsset");
 
+                    b.Property<string>("HlsRootKey")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("hls_root_key");
+
                     b.HasDiscriminator().HasValue("VIDEO");
                 });
 
             modelBuilder.Entity("FileService.Domain.MediaAssets.MediaAsset", b =>
                 {
-                    b.OwnsOne("FileService.Domain.MediaAssets.ValueObjects.StorageKey", "FinalKey", b1 =>
-                        {
-                            b1.Property<Guid>("MediaAssetId");
-
-                            b1.Property<string>("Key")
-                                .IsRequired()
-                                .HasJsonPropertyName("key");
-
-                            b1.Property<string>("Location")
-                                .IsRequired()
-                                .HasJsonPropertyName("location");
-
-                            b1.Property<string>("Prefix")
-                                .IsRequired()
-                                .HasJsonPropertyName("prefix");
-
-                            b1.HasKey("MediaAssetId");
-
-                            b1.ToTable("media_assets");
-
-                            b1.ToJson("final_key");
-
-                            b1.WithOwner()
-                                .HasForeignKey("MediaAssetId");
-                        });
-
-                    b.OwnsOne("FileService.Domain.MediaAssets.ValueObjects.StorageKey", "RawKey", b1 =>
-                        {
-                            b1.Property<Guid>("MediaAssetId");
-
-                            b1.Property<string>("Key")
-                                .IsRequired()
-                                .HasJsonPropertyName("key");
-
-                            b1.Property<string>("Location")
-                                .IsRequired()
-                                .HasJsonPropertyName("location");
-
-                            b1.Property<string>("Prefix")
-                                .IsRequired()
-                                .HasJsonPropertyName("prefix");
-
-                            b1.HasKey("MediaAssetId");
-
-                            b1.ToTable("media_assets");
-
-                            b1.ToJson("raw_key");
-
-                            b1.WithOwner()
-                                .HasForeignKey("MediaAssetId");
-                        });
-
                     b.OwnsOne("FileService.Domain.MediaAssets.ValueObjects.MediaData", "MediaData", b1 =>
                         {
                             b1.Property<Guid>("MediaAssetId");
@@ -241,45 +204,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
                                 .IsRequired();
                         });
 
-                    b.Navigation("FinalKey")
-                        .IsRequired();
-
                     b.Navigation("MediaData")
-                        .IsRequired();
-
-                    b.Navigation("RawKey")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("FileService.Domain.VideoAssets.VideoAsset", b =>
-                {
-                    b.OwnsOne("FileService.Domain.MediaAssets.ValueObjects.StorageKey", "HlsRootKey", b1 =>
-                        {
-                            b1.Property<Guid>("VideoAssetId");
-
-                            b1.Property<string>("Key")
-                                .IsRequired()
-                                .HasJsonPropertyName("key");
-
-                            b1.Property<string>("Location")
-                                .IsRequired()
-                                .HasJsonPropertyName("location");
-
-                            b1.Property<string>("Prefix")
-                                .IsRequired()
-                                .HasJsonPropertyName("prefix");
-
-                            b1.HasKey("VideoAssetId");
-
-                            b1.ToTable("media_assets");
-
-                            b1.ToJson("hls_root_key");
-
-                            b1.WithOwner()
-                                .HasForeignKey("VideoAssetId");
-                        });
-
-                    b.Navigation("HlsRootKey")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

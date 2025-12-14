@@ -1,4 +1,4 @@
-﻿using FileService.Core.Features.MediaAssets;
+﻿using FileService.Core;
 using FileService.Core.MediaAssets;
 using FileService.Infrastructure.Postgres.Database;
 using FileService.Infrastructure.Postgres.Repositories;
@@ -15,9 +15,20 @@ public static class Registration
 {
     public static IServiceCollection AddInfrastructurePostgres(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContextPool<AppDbContext>((sp, options) =>
+        services.AddDbContextPool<AppDbContext>(ConfigureDbContext);
+
+        services.AddDbContextPool<IReadDbContext, AppDbContext>(ConfigureDbContext);
+
+        services.AddScoped<IMediaRepository, MediaRepository>();
+
+        services.AddScoped<ITransactionManager, TransactionManager>();
+
+        return services;
+
+        void ConfigureDbContext(IServiceProvider sp, DbContextOptionsBuilder options)
         {
             string? connectionString = configuration.GetConnectionString(Constants.DATABASE);
+
             IHostEnvironment hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
             ILoggerFactory loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
@@ -30,12 +41,6 @@ public static class Registration
             }
 
             options.UseLoggerFactory(loggerFactory);
-        });
-
-        services.AddScoped<IMediaRepository, MediaRepository>();
-
-        services.AddScoped<ITransactionManager, TransactionManager>();
-
-        return services;
+        }
     }
 }
