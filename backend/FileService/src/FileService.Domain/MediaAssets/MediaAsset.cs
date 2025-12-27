@@ -88,7 +88,7 @@ public abstract class MediaAsset : BaseEntity<MediaAssetId>
         if (Status is MediaStatus.UPLOADED)
         {
             FinalKey = finalKey;
-            Status = MediaStatus.FAILED;
+            Status = MediaStatus.READY;
             UpdatedAt = date;
             return UnitResult.Success<Error>();
         }

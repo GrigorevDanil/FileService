@@ -1,9 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
-using FileService.Core.MediaAssets;
+using FileService.Contracts.MediaAssets.Requests;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
@@ -19,10 +20,10 @@ public class GetDownloadUrlsEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
         builder.MapGet("/files/download/urls", async Task<EndpointResult<IEnumerable<string>>> (
-                [FromQuery] string[] paths,
+                [AsParameters] GetDownloadUrlsRequest request,
                 [FromServices] GetDownloadUrlsHandler handler,
                 CancellationToken cancellationToken) =>
-            await handler.Handle(new GetDownloadUrlsQuery(paths), cancellationToken));
+            await handler.Handle(new GetDownloadUrlsQuery(request), cancellationToken));
     }
 }
 
@@ -30,20 +31,11 @@ public class GetDownloadUrlsValidator : AbstractValidator<GetDownloadUrlsQuery>
 {
     public GetDownloadUrlsValidator()
     {
-        RuleForEach(x => x.Paths)
-            .NotEmpty()
-            .WithError(GeneralErrors.ValueIsRequired("Path is required"))
-            .Must(PathParser.BeValidPathStructure)
-            .WithError(GeneralErrors.ValueIsInvalid("Path must have at least 2 parts separated by slashes", "path"))
-            .MustBeValueObject(p =>
-            {
-                (string location, string? prefix, string key) = PathParser.ParsePath(p);
-                return StorageKey.Of(location, prefix, key);
-            });
+        RuleForEach(x => x.Request.Paths).MustBeValueObject(StorageKey.Of);
     }
 }
 
-public record GetDownloadUrlsQuery(string[] Paths) : IQuery;
+public record GetDownloadUrlsQuery(GetDownloadUrlsRequest Request) : IQuery;
 
 public sealed class GetDownloadUrlsHandler : IQueryHandlerWithResult<GetDownloadUrlsQuery, IEnumerable<string>>
 {
@@ -70,11 +62,9 @@ public sealed class GetDownloadUrlsHandler : IQueryHandlerWithResult<GetDownload
 
         List<string> urls = [];
 
-        foreach (string path in query.Paths)
+        foreach (string path in query.Request.Paths)
         {
-            (string location, string? prefix, string key) = PathParser.ParsePath(path);
-
-            StorageKey storageKey = StorageKey.Of(location, prefix, key).Value;
+            StorageKey storageKey = StorageKey.Of(path).Value;
 
             Result<string, Error> getResult = await _s3Provider.GenerateDownloadUrlAsync(storageKey);
 
@@ -84,7 +74,7 @@ public sealed class GetDownloadUrlsHandler : IQueryHandlerWithResult<GetDownload
             urls.Add(getResult.Value);
         }
 
-        _logger.LogInformation("Download url was generated for paths {Paths}", string.Join(", ", query.Paths));
+        _logger.LogInformation("Download url was generated for paths {Paths}", string.Join(", ", query.Request.Paths));
 
         return urls;
     }

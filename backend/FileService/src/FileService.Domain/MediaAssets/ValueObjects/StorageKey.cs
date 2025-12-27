@@ -46,6 +46,27 @@ public sealed record StorageKey
     /// <summary>
     /// Создает новый объект <see cref="StorageKey"/>.
     /// </summary>
+    /// <param name="fullPath">Полный путь к медиа файлу.</param>
+    /// <returns>Новый объект <see cref="StorageKey"/> или ошибка <see cref="Error"/>.</returns>
+    public static Result<StorageKey, Error> Of(string fullPath)
+    {
+        string[] parts = Uri.UnescapeDataString(fullPath).Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length < 2)
+            return GeneralErrors.ValueIsInvalid("FullPath is not specified correctly", "storageKey.key");
+
+        string location = parts[0];
+
+        string key = parts[^1];
+
+        string? prefix = parts.Length > 2 ? string.Join("/", parts.Skip(1).Take(parts.Length - 2)) : null;
+
+        return Of(location, prefix, key);
+    }
+
+    /// <summary>
+    /// Создает новый объект <see cref="StorageKey"/>.
+    /// </summary>
     /// <param name="location">Место хранения.</param>
     /// <param name="prefix">Префикс.</param>
     /// <param name="key">Ключ.</param>
@@ -53,7 +74,7 @@ public sealed record StorageKey
     public static Result<StorageKey, Error> Of(string location, string? prefix, string key)
     {
         if (string.IsNullOrWhiteSpace(location))
-            return GeneralErrors.ValueIsInvalid("storageKey.location");
+            return GeneralErrors.ValueIsInvalid("Location was not specified", "storageKey.location");
 
         Result<string, Error> normalizeKeyResult = NormalizeSegment(key);
 
@@ -109,7 +130,7 @@ public sealed record StorageKey
         string trimmed = value.Trim();
 
         if (trimmed.Contains('/', StringComparison.Ordinal) || trimmed.Contains('\\', StringComparison.Ordinal))
-            return GeneralErrors.ValueIsInvalid("storageKey.key");
+            return GeneralErrors.ValueIsInvalid("Segment has an uncorrected format", "storageKey.key");
 
         return trimmed;
     }

@@ -26,6 +26,8 @@ dotnet_diagnostic.CA1816.severity = none
 dotnet_diagnostic.CA1063.severity = none
 dotnet_diagnostic.CA1819.severity = none
 dotnet_diagnostic.CA1054.severity = none
+dotnet_diagnostic.CA2234.severity = none
+dotnet_diagnostic.CA1852.severity = none
 
 # StyleCop - отключение правил форматирования
 dotnet_diagnostic.SA1516.severity = none

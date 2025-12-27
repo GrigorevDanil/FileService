@@ -92,12 +92,12 @@ public sealed class StartMultipartUploadHandler : ICommandHandler<StartMultipart
 
         FileSize fileSize = FileSize.Of(command.Request.FileSize).Value;
 
-        Result<(long ChuckSize, int TotalChunks), Error> calculateChunkResult = _chunkSizeCalculator.Calculate(command.Request.FileSize);
+        Result<(int ChuckSize, int TotalChunks), Error> calculateChunkResult = _chunkSizeCalculator.Calculate(command.Request.FileSize);
 
         if (calculateChunkResult.IsFailure)
             return calculateChunkResult.Error.ToErrors();
 
-        (long chuckSize, int totalChunks) = calculateChunkResult.Value;
+        (int chuckSize, int totalChunks) = calculateChunkResult.Value;
 
         Result<ExpectedChunksCount, Error> expectedChunksCountResult = ExpectedChunksCount.Of(totalChunks);
 
