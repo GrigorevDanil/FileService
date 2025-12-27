@@ -22,11 +22,11 @@ public sealed class GetDownloadUrlEndpoint : IEndpoint
                 [FromRoute] string path,
                 [FromServices] GetDownloadUrlHandler handler,
                 CancellationToken cancellationToken) =>
-            await handler.Handle(new GetDownloadUrlCommand(path), cancellationToken));
+            await handler.Handle(new GetDownloadUrlQuery(path), cancellationToken));
     }
 }
 
-public sealed class GetDownloadUrlValidator : AbstractValidator<GetDownloadUrlCommand>
+public sealed class GetDownloadUrlValidator : AbstractValidator<GetDownloadUrlQuery>
 {
     public GetDownloadUrlValidator()
     {
@@ -43,17 +43,17 @@ public sealed class GetDownloadUrlValidator : AbstractValidator<GetDownloadUrlCo
     }
 }
 
-public sealed record GetDownloadUrlCommand(string Path) : ICommand;
+public sealed record GetDownloadUrlQuery(string Path) : IQuery;
 
-public sealed class GetDownloadUrlHandler : ICommandHandler<GetDownloadUrlCommand, string>
+public sealed class GetDownloadUrlHandler : IQueryHandlerWithResult<GetDownloadUrlQuery, string>
 {
     private readonly IS3Provider _s3Provider;
-    private readonly IValidator<GetDownloadUrlCommand> _validator;
+    private readonly IValidator<GetDownloadUrlQuery> _validator;
     private readonly ILogger<GetDownloadUrlHandler> _logger;
 
     public GetDownloadUrlHandler(
         IS3Provider s3Provider,
-        IValidator<GetDownloadUrlCommand> validator,
+        IValidator<GetDownloadUrlQuery> validator,
         ILogger<GetDownloadUrlHandler> logger)
     {
         _s3Provider = s3Provider;
@@ -61,14 +61,14 @@ public sealed class GetDownloadUrlHandler : ICommandHandler<GetDownloadUrlComman
         _logger = logger;
     }
 
-    public async Task<Result<string, Errors>> Handle(GetDownloadUrlCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<string, Errors>> Handle(GetDownloadUrlQuery query, CancellationToken cancellationToken = default)
     {
-        ValidationResult validationResult = await _validator.ValidateAsync(command, cancellationToken);
+        ValidationResult validationResult = await _validator.ValidateAsync(query, cancellationToken);
 
         if (!validationResult.IsValid)
             return validationResult.ToErrors();
 
-        (string location, string? prefix, string key) = PathParser.ParsePath(command.Path);
+        (string location, string? prefix, string key) = PathParser.ParsePath(query.Path);
 
         StorageKey storageKey = StorageKey.Of(location, prefix, key).Value;
 
@@ -77,7 +77,7 @@ public sealed class GetDownloadUrlHandler : ICommandHandler<GetDownloadUrlComman
         if (getResult.IsFailure)
             return getResult.Error.ToErrors();
 
-        _logger.LogInformation("Download url was generated for path {Path}", command.Path);
+        _logger.LogInformation("Download url was generated for path {Path}", query.Path);
 
         return getResult.Value;
     }

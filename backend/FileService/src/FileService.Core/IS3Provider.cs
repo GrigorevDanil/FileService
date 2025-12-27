@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts.MediaAssets.Dtos;
+using FileService.Core.Models;
 using FileService.Domain.MediaAssets.ValueObjects;
 using SharedService.SharedKernel;
 
@@ -28,5 +29,5 @@ public interface IS3Provider
 
     Task<Result<string, Error>> GenerateDownloadUrlAsync(StorageKey key);
 
-    Task<Result<IReadOnlyList<string>, Errors>> GenerateDownloadUrlsAsync(IEnumerable<StorageKey> keys, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<MediaUrl>, Errors>> GenerateDownloadUrlsAsync(IEnumerable<StorageKey> keys, CancellationToken cancellationToken = default);
 }

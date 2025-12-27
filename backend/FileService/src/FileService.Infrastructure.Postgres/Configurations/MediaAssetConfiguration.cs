@@ -104,5 +104,7 @@ public class MediaAssetConfiguration : IEntityTypeConfiguration<MediaAsset>
 
         builder.HasIndex(e => new { e.Status, e.CreatedAt })
             .HasDatabaseName("ix_media_assets_status_created_at");
+
+        builder.HasQueryFilter(e => e.Status != MediaStatus.DELETED);
     }
 }
