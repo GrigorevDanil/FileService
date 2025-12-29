@@ -8,33 +8,7 @@ public static class HttpResponseMessageExtensions
 {
     extension(HttpResponseMessage response)
     {
-        public async Task<Result<TResponse, Errors>> HandleStructResponseAsync<TResponse>(CancellationToken cancellationToken = default)
-            where TResponse : struct
-        {
-            try
-            {
-                Envelope<TResponse>? data =
-                    await response.Content.ReadFromJsonAsync<Envelope<TResponse>>(cancellationToken);
-
-                if (!response.IsSuccessStatusCode)
-                    return data?.ErrorList ?? GeneralErrors.Failure("Unknown error");
-
-                if (data is null)
-                    return GeneralErrors.Failure("Error while reading response").ToErrors();
-
-                if (data.ErrorList is not null)
-                    return data.ErrorList;
-
-                return data.Result;
-            }
-            catch
-            {
-                return GeneralErrors.Failure("Error while reading response").ToErrors();
-            }
-        }
-
         public async Task<Result<TResponse, Errors>> HandleResponseAsync<TResponse>(CancellationToken cancellationToken = default)
-            where TResponse : class
         {
             try
             {

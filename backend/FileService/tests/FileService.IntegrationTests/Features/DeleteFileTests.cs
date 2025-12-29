@@ -1,5 +1,4 @@
 ﻿using Amazon.S3;
-using Amazon.S3.Model;
 using CSharpFunctionalExtensions;
 using FileService.Contracts.MediaAssets.Requests;
 using FileService.Core.HttpCommunication;
@@ -69,6 +68,6 @@ public class DeleteFileTests : FileServiceBaseTests
 
         HttpResponseMessage deleteFileResponse = await AppHttpClient.DeleteAsync("/api/files/delete", request, cancellationToken);
 
-        return await deleteFileResponse.HandleStructResponseAsync<Guid>(cancellationToken);
+        return await deleteFileResponse.HandleResponseAsync<Guid>(cancellationToken);
     }
 }
