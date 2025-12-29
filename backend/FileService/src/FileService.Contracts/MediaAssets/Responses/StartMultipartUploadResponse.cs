@@ -2,4 +2,4 @@
 
 namespace FileService.Contracts.MediaAssets.Responses;
 
-public record StartMultipartUploadResponse(Guid MediaAssetId, string UploadId, IReadOnlyList<ChunkUploadUrl> ChuckUploadUrls, long ChuckSize);
+public record StartMultipartUploadResponse(Guid MediaAssetId, string UploadId, IReadOnlyList<ChunkUploadUrl> ChunkUploadUrls, int ChunkSize);

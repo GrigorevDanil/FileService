@@ -1,9 +1,11 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Contracts.MediaAssets.Requests;
 using FileService.Core.MediaAssets;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
@@ -18,11 +20,11 @@ public sealed class GetDownloadUrlEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/files/download/url/{path}", async Task<EndpointResult<string>> (
-                [FromRoute] string path,
+        builder.MapGet("/files/download/url", async Task<EndpointResult<string>> (
+                [AsParameters] GetDownloadUrlRequest request,
                 [FromServices] GetDownloadUrlHandler handler,
                 CancellationToken cancellationToken) =>
-            await handler.Handle(new GetDownloadUrlQuery(path), cancellationToken));
+            await handler.Handle(new GetDownloadUrlQuery(request), cancellationToken));
     }
 }
 
@@ -30,20 +32,11 @@ public sealed class GetDownloadUrlValidator : AbstractValidator<GetDownloadUrlQu
 {
     public GetDownloadUrlValidator()
     {
-        RuleFor(x => x.Path)
-            .NotEmpty()
-            .WithError(GeneralErrors.ValueIsRequired("Path is required"))
-            .Must(PathParser.BeValidPathStructure)
-            .WithError(GeneralErrors.ValueIsInvalid("Path must have at least 2 parts separated by slashes", "path"))
-            .MustBeValueObject(p =>
-            {
-                (string location, string? prefix, string key) = PathParser.ParsePath(p);
-                return StorageKey.Of(location, prefix, key);
-            });
+        RuleFor(x => x.Request.Path).MustBeValueObject(StorageKey.Of);
     }
 }
 
-public sealed record GetDownloadUrlQuery(string Path) : IQuery;
+public sealed record GetDownloadUrlQuery(GetDownloadUrlRequest Request) : IQuery;
 
 public sealed class GetDownloadUrlHandler : IQueryHandlerWithResult<GetDownloadUrlQuery, string>
 {
@@ -68,16 +61,14 @@ public sealed class GetDownloadUrlHandler : IQueryHandlerWithResult<GetDownloadU
         if (!validationResult.IsValid)
             return validationResult.ToErrors();
 
-        (string location, string? prefix, string key) = PathParser.ParsePath(query.Path);
-
-        StorageKey storageKey = StorageKey.Of(location, prefix, key).Value;
+        StorageKey storageKey = StorageKey.Of(query.Request.Path).Value;
 
         Result<string, Error> getResult = await _s3Provider.GenerateDownloadUrlAsync(storageKey);
 
         if (getResult.IsFailure)
             return getResult.Error.ToErrors();
 
-        _logger.LogInformation("Download url was generated for path {Path}", query.Path);
+        _logger.LogInformation("Download url was generated for path {Path}", query.Request.Path);
 
         return getResult.Value;
     }

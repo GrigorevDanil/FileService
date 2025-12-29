@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts.MediaAssets.Requests;
+using FileService.Core.Features.MediaAssets.Queries;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
@@ -14,7 +15,7 @@ using SharedService.Core.Validation;
 using SharedService.Framework.Endpoints;
 using SharedService.SharedKernel;
 
-namespace FileService.Core.Features.MediaAssets.Queries;
+namespace FileService.Core.Features.MediaAssets.UseCases;
 
 public sealed class GetUploadUrlEndpoint : IEndpoint
 {

@@ -1,10 +1,12 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Contracts.MediaAssets.Requests;
 using FileService.Core.MediaAssets;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
@@ -20,11 +22,11 @@ public sealed class DeleteFileEndpoint : IEndpoint
 {
      public void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        builder.MapDelete("/files/delete/{path}", async Task<EndpointResult<Guid>> (
-            [FromRoute] string path,
+        builder.MapDelete("/files/delete", async Task<EndpointResult<Guid>> (
+            [AsParameters] DeleteFileRequest request,
             [FromServices] DeleteFileHandler handler,
             CancellationToken cancellationToken) =>
-            await handler.Handle(new DeleteFileCommand(path), cancellationToken));
+            await handler.Handle(new DeleteFileCommand(request), cancellationToken));
     }
 }
 
@@ -32,20 +34,11 @@ public sealed class DeleteFileValidator : AbstractValidator<DeleteFileCommand>
 {
     public DeleteFileValidator()
     {
-        RuleFor(x => x.Path)
-            .NotEmpty()
-            .WithError(GeneralErrors.ValueIsRequired("Path is required"))
-            .Must(PathParser.BeValidPathStructure)
-            .WithError(GeneralErrors.ValueIsInvalid("Path must have at least 2 parts separated by slashes", "path"))
-            .MustBeValueObject(p =>
-            {
-                (string location, string? prefix, string key) = PathParser.ParsePath(p);
-                return StorageKey.Of(location, prefix, key);
-            });
+        RuleFor(x => x.Request.Path).MustBeValueObject(StorageKey.Of);
     }
 }
 
-public sealed record DeleteFileCommand(string Path) : ICommand;
+public sealed record DeleteFileCommand(DeleteFileRequest Request) : ICommand;
 
 public sealed class DeleteFileHandler : ICommandHandler<DeleteFileCommand, Guid>
 {
@@ -76,9 +69,7 @@ public sealed class DeleteFileHandler : ICommandHandler<DeleteFileCommand, Guid>
         if (!validationResult.IsValid)
             return validationResult.ToErrors();
 
-        (string location, string? prefix, string key) = PathParser.ParsePath(command.Path);
-
-        StorageKey storageKey = StorageKey.Of(location, prefix, key).Value;
+        StorageKey storageKey = StorageKey.Of(command.Request.Path).Value;
 
         Result<MediaAsset, Error> getResult = await _mediaRepository.GetBy(x => x.RawKey == storageKey, cancellationToken);
 
@@ -99,7 +90,7 @@ public sealed class DeleteFileHandler : ICommandHandler<DeleteFileCommand, Guid>
         if (commitedResult.IsFailure)
             return commitedResult.Error.ToErrors();
 
-        _logger.LogInformation("Object by path {Path} was deleted", command.Path);
+        _logger.LogInformation("Object by path {Path} was deleted", command.Request.Path);
 
         return mediaAsset.Id.Value;
     }

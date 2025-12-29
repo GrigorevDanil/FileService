@@ -36,11 +36,11 @@ public sealed class GetChuckUploadUrlValidator : AbstractValidator<GetChuckUploa
     {
         RuleFor(x => x.Request.PartNumber)
             .Must(pn => pn > 0)
-            .WithError(GeneralErrors.ValueIsInvalid("PartNumber must  be greater than one"));
+            .WithError(GeneralErrors.ValueIsInvalid("PartNumber must be greater than one"));
     }
 }
 
-public sealed record GetChuckUploadUrlQuery(GetChuckUploadUrlRequest Request) : IQuery;
+public sealed record GetChuckUploadUrlQuery(Contracts.MediaAssets.Requests.GetChuckUploadUrlRequest Request) : IQuery;
 
 public sealed class GetChuckUploadUrlHandler : IQueryHandlerWithResult<GetChuckUploadUrlQuery, string>
 {
@@ -76,6 +76,9 @@ public sealed class GetChuckUploadUrlHandler : IQueryHandlerWithResult<GetChuckU
             return getMediaAssetResult.Error.ToErrors();
 
         MediaAsset mediaAsset = getMediaAssetResult.Value;
+
+        if (mediaAsset.MediaData.ExpectedChunksCount.Value < query.Request.PartNumber)
+            return GeneralErrors.ValueIsInvalid("Not the expected PartNumber").ToErrors();
 
         Result<ChunkUploadUrl, Error> generateChunkUploadUrlResult = await _s3Provider.GenerateChunkUploadUrl(mediaAsset.RawKey, query.Request.UploadId, query.Request.PartNumber);
 
