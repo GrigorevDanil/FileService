@@ -4,11 +4,11 @@ using CSharpFunctionalExtensions;
 using FileService.Contracts.MediaAssets.Dtos;
 using FileService.Contracts.MediaAssets.Requests;
 using FileService.Contracts.MediaAssets.Responses;
-using FileService.Core.HttpCommunication;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FileService.IntegrationTests.Infrastructure;
+using SharedService.Core.HttpCommunication;
 using SharedService.SharedKernel;
 using AbortMultipartUploadRequest = FileService.Contracts.MediaAssets.Requests.AbortMultipartUploadRequest;
 using CompleteMultipartUploadRequest = FileService.Contracts.MediaAssets.Requests.CompleteMultipartUploadRequest;
@@ -91,7 +91,7 @@ public class MultipartUploadFileTests : FileServiceBaseTests
         FileInfo testFile = new(Path.Combine(AppContext.BaseDirectory, "Resources", TestFileName));
 
         // act
-        StartMultipartUploadResponse startMultipartUploadResponse = await StartMultipartUpload(testFile, cancellationToken);
+        StartMultipartUploadResponse? startMultipartUploadResponse = await StartMultipartUpload(testFile, cancellationToken);
 
         Result<string, Errors> getChunkUploadUrlResult = await GetChunkUploadUrl(startMultipartUploadResponse, requestedPartNumber, cancellationToken);
 
@@ -167,7 +167,7 @@ public class MultipartUploadFileTests : FileServiceBaseTests
 
         HttpResponseMessage getChunkUploadUrlResponse = await AppHttpClient.GetAsync("/api/files/multipart/url", request, cancellationToken);
 
-        return await getChunkUploadUrlResponse.HandleResponseAsync<string>(cancellationToken);
+        return (await getChunkUploadUrlResponse.HandleResponseAsync<string>(cancellationToken))!;
     }
 
     private async Task<StartMultipartUploadResponse> StartMultipartUpload(FileInfo file, CancellationToken cancellationToken = default)
@@ -184,13 +184,16 @@ public class MultipartUploadFileTests : FileServiceBaseTests
         // act
         HttpResponseMessage startMultipartResponse = await AppHttpClient.PostAsJsonAsync("/api/files/multipart/start", request, cancellationToken);
 
-        Result<StartMultipartUploadResponse, Errors> startMultipartResult = await startMultipartResponse.HandleResponseAsync<StartMultipartUploadResponse>(cancellationToken);
+        Result<StartMultipartUploadResponse?, Errors> startMultipartResult = await startMultipartResponse.HandleResponseAsync<StartMultipartUploadResponse>(cancellationToken);
 
         // assert
-        StartMultipartUploadResponse startMultipartData = startMultipartResult.Value;
-
         Assert.True(startMultipartResult.IsSuccess);
+
+        Assert.NotNull(startMultipartResult.Value);
+
         Assert.NotNull(startMultipartResult.Value.UploadId);
+
+        StartMultipartUploadResponse startMultipartData = startMultipartResult.Value;
 
         await ExecuteInDb(async dbContext =>
         {
