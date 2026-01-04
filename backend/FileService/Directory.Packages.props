@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.14" />
     <PackageVersion Include="AWSSDK.S3" Version="4.0.14.2" />
+    <PackageVersion Include="CSharpFunctionalExtensions" Version="3.6.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.1" />
@@ -23,9 +24,9 @@
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.Debug" Version="3.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
-    <PackageVersion Include="SharedService.Core" Version="0.0.2" />
-    <PackageVersion Include="sharedservice.framework" Version="0.0.3" />
-    <PackageVersion Include="sharedservice.sharedkernel" Version="0.0.2" />
+    <PackageVersion Include="SharedService.Core" Version="0.0.3" />
+    <PackageVersion Include="Sharedservice.Framework" Version="0.0.3" />
+    <PackageVersion Include="Sharedservice.Sharedkernel" Version="0.0.2" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="10.0.1" />

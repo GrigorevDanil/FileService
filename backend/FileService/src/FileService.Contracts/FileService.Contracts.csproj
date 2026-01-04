@@ -6,4 +6,19 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App"/>
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CSharpFunctionalExtensions" />
+    <PackageReference Include="SharedService.SharedKernel" />
+    <PackageReference Include="SharedService.Core" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PackageId>FileService.Communication</PackageId>
+    <Version>0.0.2</Version>
+    <Authors>GrigorevDanil</Authors>
+    <Company>GrigorevDanil</Company>
+    <PackageDescription>Communication</PackageDescription>
+    <RepositoryUrl>https://github.com/GrigorevDanil/FileService</RepositoryUrl>
+  </PropertyGroup>
 </Project>

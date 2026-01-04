@@ -1,7 +1,6 @@
 ﻿using Amazon.S3;
 using CSharpFunctionalExtensions;
 using FileService.Contracts.MediaAssets.Requests;
-using FileService.Core.HttpCommunication;
 using FileService.Domain;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.Enums;
@@ -10,6 +9,7 @@ using FileService.Domain.VideoAssets;
 using FileService.Infrastructure.S3;
 using FileService.IntegrationTests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using SharedService.Core.HttpCommunication;
 using SharedService.SharedKernel;
 
 namespace FileService.IntegrationTests.Features;

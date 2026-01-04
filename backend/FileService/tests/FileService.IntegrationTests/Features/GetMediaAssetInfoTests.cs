@@ -1,12 +1,12 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts.MediaAssets.Dtos;
 using FileService.Core.Features.MediaAssets.Queries;
-using FileService.Core.HttpCommunication;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.Enums;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FileService.Domain.VideoAssets;
 using FileService.IntegrationTests.Infrastructure;
+using SharedService.Core.HttpCommunication;
 using SharedService.SharedKernel;
 
 namespace FileService.IntegrationTests.Features;
@@ -34,13 +34,13 @@ public class GetMediaAssetInfoTests : FileServiceBaseTests
         Result<IEnumerable<MediaAssetDto>, Errors> getResult = await GetMediaAssetsInfo([videoAsset1.Id.Value, videoAsset2.Id.Value], cancellationToken);
 
         // assert
-        MediaAssetDto[] mediaAssets = getResult.Value.ToArray();
-
         Assert.True(testFile.Exists);
 
         Assert.True(getResult.IsSuccess);
 
         Assert.NotNull(getResult.Value);
+
+        MediaAssetDto[] mediaAssets = getResult.Value.ToArray();
 
         Assert.NotNull(mediaAssets[0]);
 
@@ -73,7 +73,7 @@ public class GetMediaAssetInfoTests : FileServiceBaseTests
         VideoAsset videoAsset = await CreateVideoAssetAsync(testFile, cancellationToken);
 
         // act
-        Result<MediaAssetDto, Errors> getResult = await GetMediaAssetInfo(videoAsset.Id.Value, cancellationToken);
+        Result<MediaAssetDto?, Errors> getResult = await GetMediaAssetInfo(videoAsset.Id.Value, cancellationToken);
 
         // assert
         Assert.True(testFile.Exists);
@@ -103,7 +103,7 @@ public class GetMediaAssetInfoTests : FileServiceBaseTests
         VideoAsset videoAsset = await CreateVideoAssetAsync(testFile, MediaStatus.READY, cancellationToken);
 
         // act
-        Result<MediaAssetDto, Errors> getResult = await GetMediaAssetInfo(videoAsset.Id.Value, cancellationToken);
+        Result<MediaAssetDto?, Errors> getResult = await GetMediaAssetInfo(videoAsset.Id.Value, cancellationToken);
 
         // assert
         Assert.True(testFile.Exists);
@@ -122,7 +122,7 @@ public class GetMediaAssetInfoTests : FileServiceBaseTests
         });
     }
 
-    private async Task<Result<MediaAssetDto, Errors>> GetMediaAssetInfo(Guid mediaAssetId, CancellationToken cancellationToken = default)
+    private async Task<Result<MediaAssetDto?, Errors>> GetMediaAssetInfo(Guid mediaAssetId, CancellationToken cancellationToken = default)
     {
         HttpResponseMessage getMediaAssetResponse = await AppHttpClient.GetAsync("/api/files/" + mediaAssetId, cancellationToken);
 
@@ -135,6 +135,6 @@ public class GetMediaAssetInfoTests : FileServiceBaseTests
 
         HttpResponseMessage getMediaAssetResponse = await AppHttpClient.GetAsync("/api/files/batch", query, cancellationToken);
 
-        return await getMediaAssetResponse.HandleResponseAsync<IEnumerable<MediaAssetDto>>(cancellationToken);
+        return (await getMediaAssetResponse.HandleResponseAsync<IEnumerable<MediaAssetDto>>(cancellationToken))!;
     }
 }

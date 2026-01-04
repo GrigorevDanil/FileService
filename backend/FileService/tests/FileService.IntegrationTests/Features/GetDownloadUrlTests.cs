@@ -1,10 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts.MediaAssets.Requests;
-using FileService.Core.HttpCommunication;
 using FileService.Domain.MediaAssets;
 using FileService.Domain.MediaAssets.ValueObjects;
 using FileService.Domain.VideoAssets;
 using FileService.IntegrationTests.Infrastructure;
+using SharedService.Core.HttpCommunication;
 using SharedService.SharedKernel;
 
 namespace FileService.IntegrationTests.Features;
@@ -82,7 +82,7 @@ public class GetDownloadUrlTests : FileServiceBaseTests
 
         HttpResponseMessage getDownloadUrlResponse = await AppHttpClient.GetAsync("/api/files/download/url", request, cancellationToken);
 
-        return await getDownloadUrlResponse.HandleResponseAsync<string>(cancellationToken);
+        return (await getDownloadUrlResponse.HandleResponseAsync<string>(cancellationToken))!;
     }
 
     private async Task<Result<string[], Errors>> GetDownloadUrls(StorageKey[] keys, CancellationToken cancellationToken = default)
@@ -91,6 +91,6 @@ public class GetDownloadUrlTests : FileServiceBaseTests
 
         HttpResponseMessage getDownloadUrlResponse = await AppHttpClient.GetAsync("/api/files/download/urls", request, cancellationToken);
 
-        return await getDownloadUrlResponse.HandleResponseAsync<string[]>(cancellationToken);
+        return (await getDownloadUrlResponse.HandleResponseAsync<string[]>(cancellationToken))!;
     }
 }
